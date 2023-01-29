@@ -1,0 +1,6 @@
+---
+- name: restart reproxy service
+  systemd:
+    daemon_reload: true
+    name: reproxy
+    state: restarted

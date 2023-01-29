@@ -1,0 +1,23 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=Reproxy - Simple edge server / reverse proxy
+After=network.target
+
+[Service]
+Type=simple
+User={{ reproxy_system_user }}
+Group={{ reproxy_system_group }}
+StartLimitBurst=5
+StartLimitInterval=0
+Restart=always
+EnvironmentFile={{ reproxy_conf_dir }}/reproxy.conf
+ExecStart={{ reproxy_bin_dir }}/reproxy
+
+ExecStop=/bin/kill -s SIGTERM $MAINPID
+
+PrivateTmp=yes
+ProtectHome=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

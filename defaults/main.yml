@@ -1,0 +1,27 @@
+---
+reproxy_repo_url: "https://github.com/umputun/reproxy"
+reproxy_version: "v0.11.0"
+reproxy_download_url: "{{ reproxy_repo_url }}/releases/download/{{ reproxy_version }}/reproxy_{{ reproxy_version }}_linux_x86_64.tar.gz"
+
+reproxy_system_user: "reproxy"
+reproxy_system_group: "reproxy"
+
+reproxy_service_enabled: true
+reproxy_service_state: started
+
+reproxy_bin_dir: /usr/local/bin
+reproxy_conf_dir: /etc/reproxy
+
+
+reproxy_conf:
+  LISTEN: "{{ ansible_default_ipv4.address }}"
+  GZIP: true
+  SSL_TYPE: auto
+  SSL_ACME_LOCATION: "{{ reproxy_conf_dir }}/acme"
+  SSL_ACME_EMAIL: "admin@example.com"
+  FILE_ENABLED: true
+  FILE_NAME: "{{ reproxy_conf_dir }}/reproxy.conf"
+  MGMT_ENABLED: true
+  MGMT_LISTEN: "localhost:80"
+  STATIC_ENABLED: true
+  STATIC_RULES: "semaphore.vandud.ru,/,http://127.0.0.1:3000"

@@ -1,0 +1,74 @@
+---
+
+- name: Check if reproxy is installed
+  stat:
+    path: "{{ reproxy_bin_dir }}/reproxy"
+  changed_when: false
+  check_mode: false
+  register: reproxy_is_installed
+
+- name: Check current reproxy version
+  command: "{{ reproxy_bin_dir }}/reproxy --help | head -n 1"
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  register: reproxy_current_version
+  when:
+    reproxy_is_installed.stat.exists == True
+
+- name: Create reproxy system group
+  group:
+    name: "{{ reproxy_system_group }}"
+    state: present
+    system: true
+  when: reproxy_system_group != "root"
+
+- name: Create reproxy system user
+  user:
+    name: "{{ reproxy_system_user }}"
+    groups: "{{ reproxy_system_group }}"
+    append: true
+    shell: /sbin/nologin
+    system: true
+    createhome: false
+  when: reproxy_system_user != "root"
+
+- name: Download reproxy from {{ reproxy_download_url }}
+  unarchive:
+    src: "{{ reproxy_download_url }}"
+    dest: "{{ reproxy_bin_dir }}"
+    extra_opts:
+      - 'reproxy'
+    owner: "{{ reproxy_system_user }}"
+    group: "{{ reproxy_system_group }}"
+    remote_src: True
+  when:
+    - not ansible_check_mode
+    - reproxy_is_installed.stat.exists == False or
+      reproxy_version not in reproxy_current_version.stdout
+
+- name: Create systemd unit file for reproxy
+  template:
+    src: reproxy.service.j2
+    dest: /etc/systemd/system/reproxy.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart reproxy service
+
+- name: Ensure conf dir is exist
+  file:
+    state: directory
+    path: "{{ reproxy_conf_dir }}"
+    owner: "{{ reproxy_system_user }}"
+    group: "{{ reproxy_system_group }}"
+    mode: 0755
+
+- name: Create reproxy.conf
+  template:
+    src: reproxy.conf.j2
+    dest: "{{ reproxy_conf_dir }}/reproxy.conf"
+    owner: "{{ reproxy_system_user }}"
+    group: "{{ reproxy_system_group }}"
+    mode: 0644
+  notify: restart reproxy service
