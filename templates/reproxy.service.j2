@@ -17,7 +17,7 @@ ExecStop=/bin/kill -s SIGTERM $MAINPID
 
 PrivateTmp=yes
 ProtectHome=yes
-NoNewPrivileges=yes
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 
 [Install]
 WantedBy=multi-user.target
